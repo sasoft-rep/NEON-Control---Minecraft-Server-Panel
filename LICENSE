@@ -1,0 +1,83 @@
+NEON COMMUNITY LICENSE
+Version 1.0 (NCL-1.0)
+Draft for project adoption — 7 November 2026
+
+Copyright (c) 2026 NEON Control contributors.
+All rights reserved except for the permissions expressly granted below.
+
+NOTICE
+This is a custom source-available license, not an OSI-approved Open Source license. It is intended to permit free personal and community use, modification and redistribution while prohibiting commercial exploitation. It should receive legal review before being treated as a final legal instrument.
+
+1. DEFINITIONS
+
+"Software" means the source code, scripts, documentation and other materials in this repository that are expressly distributed under this License.
+"Modified Work" means the Software or any portion of it that has been changed, adapted, translated, extended, or combined into a derivative version.
+"Publicly Available" means accessible to the general public, without a fee, account requirement, or restrictive access control, in a repository or other source-code hosting location that permits inspection and download of the complete corresponding source.
+"Commercial Purpose" means an activity primarily intended for monetary compensation, commercial advantage, or revenue generation from the Software or access to functionality materially provided by it.
+"Hosted Service" means making the Software, or a substantially similar modified version, available for use by third parties as a hosted, managed, or remotely operated service.
+
+2. PERMITTED USE
+
+Subject to compliance with this License, the copyright holder grants you a worldwide, non-exclusive, non-transferable, royalty-free license to:
+a. use and run the Software for personal, educational, research, hobby, and non-commercial community purposes;
+b. inspect, copy, modify, adapt, and create Modified Works;
+c. make and distribute verbatim or modified copies at no charge;
+d. install and operate the Software on hardware or virtual infrastructure that you own, control, or are authorized to use, including Ubuntu Server installations and Proxmox containers.
+
+3. PUBLICATION OF MODIFICATIONS
+
+If you create, use, distribute, deploy, or make available a Modified Work, you must:
+a. make the complete corresponding source code of that Modified Work Publicly Available;
+b. publish it under this License, including all modifications and scripts required to build, install, configure, and operate the Modified Work;
+c. retain the original copyright, attribution, and license notices;
+d. clearly identify that the work has been modified, describe the material changes, and include the date of the changes;
+e. keep the source available for as long as the Modified Work is used, distributed, or made available.
+
+A private fork or private repository does not satisfy this section. You may not use this License to keep a Modified Work private.
+
+4. NON-COMMERCIAL RESTRICTIONS
+
+You may not, directly or indirectly:
+a. sell, license for a fee, rent, lease, sublicense for payment, or otherwise monetize the Software or a Modified Work;
+b. charge users for downloading, installing, accessing, operating, or using the Software or a Modified Work;
+c. offer the Software or a Modified Work as a paid Hosted Service, SaaS, managed panel, administration service, or service bureau;
+d. bundle, advertise, or include the Software or a Modified Work as a paid feature, benefit, or component of VPS, virtual-server, dedicated-server, game-server, hosting, or managed-hosting plans;
+e. use the Software as a material component of a product or service for which customers pay, where the payment grants or is materially connected to access to the Software or its functionality;
+f. sell support, installation, configuration, maintenance, priority access, plugins, themes, or add-ons when the sale is tied to or required for use of the Software;
+g. remove, disable, or work around technical or contractual measures intended to enforce these restrictions.
+
+General-purpose infrastructure may be used to host a personal or non-commercial community server, provided that no one is charged for access to the Software or for a service whose paid value is materially based on the Software. Ordinary fees paid to an unrelated infrastructure provider for compute, electricity, connectivity, or storage are not by themselves a sale of the Software.
+
+5. REDISTRIBUTION
+
+You may redistribute the Original Work or a Modified Work only at no charge and only if:
+a. this License accompanies the complete source code;
+b. all copyright, attribution, and disclaimer notices are preserved;
+c. the recipient is informed of the restrictions in Sections 3 and 4;
+d. the redistribution does not imply endorsement by the original authors.
+
+You may not impose additional restrictions that prevent recipients from exercising the rights granted by this License.
+
+6. THIRD-PARTY MATERIAL
+
+This License applies only to material that the project has the right to license. Third-party libraries, assets, fonts, trademarks, and Minecraft/Mojang/Microsoft components remain subject to their own terms. You are responsible for complying with those terms. NEON Control does not grant rights to Minecraft, Bedrock Dedicated Server, or any Mojang/Microsoft intellectual property.
+
+7. TRADEMARKS
+
+No trademark or branding rights are granted by this License. You may refer to the project name solely to identify the unmodified or modified software accurately. You may not suggest that a fork is an official release or is endorsed by the project maintainers.
+
+8. TERMINATION
+
+Any rights granted under this License terminate automatically if you materially violate its terms. If the violation is cured within 30 days after you become aware of it, the rights may be reinstated, unless the copyright holder has notified you of termination in writing. Termination does not affect rights already granted to compliant recipients.
+
+9. DISCLAIMER OF WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT. THE AUTHORS AND COPYRIGHT HOLDERS ARE NOT LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE SOFTWARE OR ITS USE.
+
+10. LIMITATION AND INTERPRETATION
+
+If any provision is held unenforceable, it shall be modified only to the minimum extent necessary to make it enforceable, and the remaining provisions shall remain in effect. No failure to enforce a provision constitutes a waiver.
+
+11. NO LEGAL ADVICE
+
+This License is a project-specific draft. It is not legal advice and has not been reviewed or approved by the Open Source Initiative. The project maintainers may publish a revised license for future versions; the license attached to a particular copy governs that copy unless its terms provide otherwise.
