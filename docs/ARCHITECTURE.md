@@ -2,57 +2,92 @@
 
 **Documento:** arquitectura base V1.0  
 **Estado:** propuesta técnica inicial  
-**Modelo:** single-node / local host
+**Modelo:** single-node / local host  
+**Ediciones:** Minecraft Java Edition + Bedrock Edition
 
 ## 1. Alcance
 
-Una instalación de NEON Control administra instancias de Minecraft Bedrock Dedicated Server que se ejecutan en el mismo Ubuntu Server o contenedor LXC. La V1.0 no administra nodos remotos, no forma clúster y no depende de servicios cloud.
+Una instalación administra múltiples instancias locales Java y Bedrock en el mismo Ubuntu Server, VM o LXC. V1.0 no administra nodos remotos ni forma clúster.
 
-Se prevé permitir múltiples instancias locales, cada una con su propio directorio, proceso, configuración, puerto y mundo. La cantidad efectiva dependerá de los recursos del host.
+El panel es independiente de los motores. Cada instancia se asocia a un adaptador que valida, inicia, detiene, consulta y se comunica con un runtime concreto.
 
-## 2. Componentes
+Motores iniciales:
+- **Bedrock:** Minecraft Bedrock Dedicated Server (BDS) oficial para Linux x86-64.
+- **Java:** PaperMC como primer motor Java, ejecutado externamente mediante una JVM compatible.
+
+Paper no es una interfaz gráfica ni parte del panel. NEON Control no hará un fork, no modificará su núcleo ni copiará su código fuente al repositorio. Paper se instala como runtime independiente y se controla como proceso externo.
+
+## 2. Capas y componentes
 
 ### Frontend
-- React + TypeScript.
-- Interfaz responsive para escritorio, tablet y móvil.
-- Dashboard, consola, instancias, jugadores, mundos, backups y configuración.
-- No debe almacenar secretos persistentes en el navegador.
+- React + TypeScript; interfaz responsive.
+- Dashboard, instancias, consola, jugadores, mundos, backups y configuración.
+- Identificación visible de edición y motor.
+- Sin secretos persistentes en el navegador.
 
 ### Backend
 - Python + FastAPI.
-- API REST autenticada.
-- WebSocket para consola, logs y métricas en vivo.
-- Validación de entrada y autorización por operación.
-- Acceso a SQLite mediante una capa de persistencia.
+- API REST autenticada y WebSocket para consola, logs y métricas.
+- Validación, autorización por operación y persistencia SQLite.
+- Orquestación común sin asumir que Java y Bedrock ofrecen funciones idénticas.
+
+### Instance Manager
+Mantiene ID, nombre, edición, motor, rutas, estado deseado/observado, puertos, recursos, versión y adaptador de cada instancia.
+
+### Engine Adapter Interface
+Contrato común para:
+- Identificar motor y edición.
+- Validar runtime y dependencias.
+- Resolver ejecutable y argumentos permitidos.
+- Start / stop / restart / status.
+- Acceso controlado a stdin/stdout y logs.
+- Detectar versión.
+- Leer/validar configuración.
+- Declarar capacidades específicas (jugadores, allowlist, permisos, mundos, actualizaciones).
+
+La interfaz mostrará funciones según las capacidades del adaptador; no supondrá paridad entre ediciones.
+
+### Adaptadores iniciales
+
+**BDS Adapter**
+- BDS oficial para Linux x86-64.
+- Configuración, allowlist, permisos y mundos según versión.
+- UDP 19132 como puerto IPv4 predeterminado.
+
+**Paper Adapter**
+- JAR obtenido desde PaperMC oficial.
+- JVM compatible con la versión de Paper instalada.
+- Ejecución Java con argumentos controlados.
+- server.properties, EULA, consola y archivos propios.
+- TCP 25565 como puerto predeterminado.
+- Gestión de plugins queda sujeta a diseño y controles de seguridad específicos.
+
+El JAR y los datos de Paper se almacenan fuera del árbol de código de NEON Control. No se copia el repositorio de Paper ni se parchea su JAR.
 
 ### Process Manager
-- Controla procesos BDS locales.
-- Registra PID, estado, hora de inicio, código de salida y logs.
-- Envía comandos de consola por un canal controlado.
-- Evita construir comandos de shell concatenando texto del usuario.
-- Debe recuperar estado tras reinicios del panel sin lanzar procesos duplicados.
+- Ejecuta procesos locales con usuario sin privilegios.
+- Registra PID, estado, inicio, código de salida y logs.
+- Conecta stdin/stdout de forma controlada.
+- No concatena entradas de usuario en comandos shell.
+- Evita duplicados y recupera estado después de reinicios.
+- Aplica límites de recursos cuando sea posible.
 
 ### Servicio privilegiado
-El backend web no debe ejecutarse como root. Las operaciones que requieran permisos adicionales se realizarán mediante un helper mínimo, con interfaz y comandos permitidos explícitamente. No se utilizará sudo genérico ni una shell administrativa expuesta por HTTP.
-
-### BDS Runtime
-- Binarios oficiales de Bedrock Dedicated Server para Linux x86-64.
-- Una carpeta de instalación por instancia.
-- Datos, mundos y configuración separados por instancia.
-- Ejecución bajo un usuario Linux sin privilegios.
+El backend no corre como root. Las operaciones que requieran permisos adicionales usan un helper mínimo y explícito. No se expone sudo genérico ni shell administrativa por HTTP.
 
 ### Database
-SQLite para la primera versión. Guardará usuarios, roles, instancias registradas, preferencias, tareas de backup, eventos de auditoría y metadatos. Los mundos y archivos grandes no se guardan dentro de SQLite.
+SQLite para usuarios, roles, instancias, preferencias, backups, auditoría y metadatos. Los mundos, JAR y archivos grandes quedan fuera de SQLite.
 
 ## 3. Flujo de control
 
-1. El usuario se autentica en la interfaz.
-2. El frontend llama a la API.
-3. La API verifica sesión, rol, CSRF cuando corresponda y parámetros.
-4. El servicio de gestión valida la acción y el estado de la instancia.
-5. El Process Manager ejecuta la operación mediante el mecanismo local definido.
-6. El resultado y los eventos se registran.
-7. El estado actualizado se transmite por WebSocket.
+1. El usuario se autentica.
+2. Selecciona una instancia y solicita una operación.
+3. La API valida sesión, rol, CSRF cuando corresponda y parámetros.
+4. Instance Manager identifica motor y adaptador.
+5. El adaptador valida acción y estado.
+6. Process Manager ejecuta con permisos mínimos.
+7. Se registran resultado y eventos.
+8. El estado se transmite por WebSocket.
 
 ## 4. Directorios propuestos
 
@@ -62,68 +97,51 @@ SQLite para la primera versión. Guardará usuarios, roles, instancias registrad
 | /etc/neon-control | Configuración del panel |
 | /var/lib/neon-control | Base de datos y estado |
 | /var/log/neon-control | Logs del panel |
-| /srv/neon-control/instances | Instancias BDS |
+| /srv/neon-control/instances | Instancias y runtimes |
 | /srv/neon-control/backups | Copias de seguridad |
 
-Las rutas deberán poder configurarse. Cada instancia tendrá subdirectorio propio. No guardar contraseñas ni claves dentro de los directorios públicos del frontend.
+Cada instancia separa runtime, datos, configuración y logs cuando corresponda.
 
 ## 5. Modelo de instancia
 
-Campos mínimos:
-- ID interno y nombre visible.
-- Ruta de instalación.
-- Versión BDS.
-- Ejecutable y argumentos permitidos.
-- Puerto IPv4/UDP y configuración IPv6.
-- Estado deseado y estado observado.
-- Memoria y límites opcionales.
-- Fecha de creación y última ejecución.
+- ID y nombre.
+- Edición: java o bedrock.
+- Motor: paper o bedrock_dedicated_server.
+- Versión de Minecraft/runtime.
+- Rutas de runtime y datos.
+- Ejecutable/JAR y argumentos permitidos.
+- Versión de Java asociada, si corresponde.
+- Puerto y protocolo TCP/UDP.
+- Estado deseado y observado.
+- Memoria, límites y capacidades del adaptador.
 
 ## 6. Operaciones previstas
 
-- Install / validate runtime.
-- Start / stop / restart.
-- Status / health.
-- Console stream / send command.
-- Read and validate server.properties.
-- Player list, allowlist and permissions management.
-- Backup / restore.
-- Update runtime with pre-update backup.
+Install/validate runtime; start/stop/restart; status/health; consola; configuración; jugadores/permisos según motor; backup/restore; actualización con backup previo. Las acciones destructivas requieren confirmación.
 
-Las acciones destructivas deben requerir confirmación y, cuando corresponda, un backup previo.
+## 7. Proxmox LXC
 
-## 7. Contenedores Proxmox
+NEON Control se ejecuta dentro del invitado como aplicación Linux normal. No requiere API de Proxmox, Docker ni nesting.
 
-La aplicación no necesita administrar Proxmox ni acceder a su API. Se ejecuta dentro del sistema invitado LXC como una aplicación Linux normal. El administrador crea y configura el contenedor desde Proxmox.
+Requisitos: Ubuntu LTS x86-64, systemd, acceso saliente a Internet, almacenamiento persistente, recursos asignados y reglas de firewall TCP/UDP. Se recomienda LXC no privilegiado.
 
-Requisitos del contenedor:
-- Ubuntu Server LTS x86-64.
-- systemd operativo.
-- Acceso saliente a Internet para obtener dependencias y BDS.
-- Almacenamiento persistente.
-- Recursos de CPU/RAM/disco asignados desde Proxmox.
-- Reglas de firewall que permitan el tráfico de juego requerido.
-- No depender de Docker ni de nesting para el diseño base.
+## 8. Seguridad
 
-Se recomienda un LXC no privilegiado cuando el entorno lo permita. No habilitar privileged, nesting ni acceso al socket de Docker como solución por defecto.
+- Panel y juegos nunca como root.
+- Sin shell arbitraria.
+- Protección contra path traversal y symlink escapes.
+- Límites de uploads/backups.
+- Sesiones con expiración y auditoría.
+- Secretos fuera del repositorio y logs.
+- API en localhost durante setup; acceso remoto solo con HTTPS/proxy seguro.
+- Verificar origen e integridad de ejecutables externos cuando existan checksums o firmas.
 
-## 8. Límites de seguridad
+## 9. Licencias y límites
 
-- BDS nunca se ejecuta como root.
-- El frontend no recibe acceso al filesystem completo.
-- No hay endpoint de shell arbitraria.
-- Rutas normalizadas y protegidas contra path traversal.
-- Límites de tamaño para uploads y backups.
-- Sesiones con expiración y cierre de sesión.
-- Auditoría de acciones administrativas.
-- Secretos fuera del repositorio y de los logs.
-- API ligada a localhost por defecto durante la instalación; acceso remoto solo después de configurar HTTPS o un proxy seguro.
+El código propio del panel se rige por LICENSE, salvo componentes expresamente identificados con otra licencia. Paper mantiene sus licencias originales, incluida GPL-3.0 para el código cubierto por ella y otras licencias cuando sus autores así lo indiquen. NEON Control lo integra como runtime externo; no lo relicencia bajo NCL-1.0.
 
-## 9. Decisiones pendientes para implementación
+BDS, Minecraft, Java y dependencias mantienen sus propios términos. Consultar docs/LICENSING.md antes de redistribuir binarios o dependencias.
 
-- Mecanismo final de comunicación con stdin/stdout del proceso BDS.
-- Helper privilegiado y política exacta de permisos.
-- Límites por instancia y cuotas de recursos.
-- Política de retención de backups.
-- Compatibilidad exacta con versiones de Ubuntu y dependencias nativas de BDS.
-- Método de actualización y rollback.
+## 10. Decisiones pendientes
+
+Contrato definitivo de adaptadores; matriz Paper/Minecraft/Java/BDS; descarga y verificación de runtimes; comunicación stdin/stdout; helper privilegiado; cuotas; retención de backups; actualizaciones y rollback; matriz de Ubuntu y dependencias nativas.
