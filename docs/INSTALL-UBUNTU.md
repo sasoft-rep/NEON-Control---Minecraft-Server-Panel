@@ -4,97 +4,68 @@
 
 ## 1. Plataforma
 
-Objetivo inicial:
-- Ubuntu Server 22.04 LTS o 24.04 LTS.
-- Arquitectura x86-64.
-- Usuario con permisos sudo para la instalación.
-- Conexión saliente a Internet.
-- Almacenamiento persistente para el panel, instancias y backups.
+- Ubuntu Server 22.04 LTS o 24.04 LTS, x86-64.
+- Usuario con sudo para instalación.
+- Acceso saliente a Internet.
+- Almacenamiento persistente para panel, instancias y backups.
 
-BDS tiene sus propios requisitos de sistema y bibliotecas. Antes de producción, verificar los requisitos de la versión de BDS que se vaya a instalar.
+Cada motor tiene requisitos independientes que deberán validarse para la versión seleccionada.
 
 ## 2. Preparación del host
 
-Actualizar el sistema:
+Actualizar Ubuntu e instalar herramientas base: ca-certificates, curl, wget, git, tar, unzip, Python 3, venv, pip y build-essential. La versión de Node.js y gestor frontend se fijarán durante la implementación.
 
-```bash
-sudo apt update
-sudo apt full-upgrade -y
-sudo apt install -y ca-certificates curl wget git tar unzip python3 python3-venv python3-pip build-essential
-```
+### Requisitos según motor
 
-La versión de Node.js LTS y el gestor de paquetes del frontend se fijarán al implementar el frontend, usando una matriz de compatibilidad documentada.
+**Bedrock:** BDS oficial para Linux x86-64 y las bibliotecas nativas requeridas por la versión descargada. Verificar los requisitos publicados por Mojang/Microsoft.
+
+**Java / Paper:** JVM compatible con la versión de Paper seleccionada. La versión exacta de Java depende de Minecraft/Paper; no asumir que una única JVM sirve para todas las versiones. El JAR se obtiene desde PaperMC y no se incluye en este repositorio.
+
+El panel deberá detectar y validar los requisitos antes de crear o iniciar una instancia.
 
 ## 3. Usuarios y directorios
 
-La instalación final creará usuarios de sistema separados, por ejemplo:
-- neonctl: servicio del panel, sin login interactivo.
-- bedrock: propietario de los procesos y archivos BDS, sin login interactivo.
+La instalación final creará usuarios de sistema sin login interactivo, por ejemplo neonctl para el panel y neongame para los procesos de juego. La implementación podrá aislar usuarios por instancia.
 
-Rutas propuestas:
-- Aplicación: /opt/neon-control
-- Configuración: /etc/neon-control
-- Estado: /var/lib/neon-control
-- Instancias: /srv/neon-control/instances
-- Backups: /srv/neon-control/backups
-- Logs: /var/log/neon-control
+- /opt/neon-control — aplicación
+- /etc/neon-control — configuración
+- /var/lib/neon-control — estado
+- /srv/neon-control/instances — instancias
+- /srv/neon-control/backups — backups
+- /var/log/neon-control — logs
 
-No ejecutar la aplicación ni BDS como root.
+No ejecutar el panel ni los servidores como root.
 
-## 4. Instalación de NEON Control
+## 4. Instalación del panel
 
-Cuando se publique el instalador estable, el flujo previsto será:
-1. Descargar una versión etiquetada desde GitHub Releases.
-2. Verificar checksum y firma si están disponibles.
-3. Crear usuarios y directorios.
-4. Instalar backend y dependencias bloqueadas.
-5. Construir y desplegar frontend.
-6. Crear configuración inicial y base SQLite.
-7. Instalar unidad systemd con permisos mínimos.
-8. Configurar el acceso inicial y mostrar cómo habilitar HTTPS.
+Cuando exista instalador estable, el flujo será descargar un release, verificar checksum/firma si están disponibles, crear usuarios/directorios, instalar dependencias bloqueadas, desplegar frontend/backend, inicializar SQLite, instalar systemd y configurar acceso seguro.
 
-No existe todavía un comando de instalación oficial. No usar comandos curl | bash de fuentes no verificadas.
+El instalador aún no existe. No usar comandos curl | bash de fuentes no verificadas.
 
-## 5. Red y firewall
+## 5. Incorporación de motores
 
-Puerto de juego por defecto previsto:
-- UDP 19132 para IPv4.
-- UDP 19133 puede utilizarse para IPv6 según la configuración del servidor.
+- **BDS:** obtener el paquete desde los canales oficiales y aceptar los términos aplicables.
+- **Paper:** obtener el JAR desde PaperMC y disponer de una JVM compatible.
 
-El puerto web del panel no debe exponerse directamente a Internet sin TLS, autenticación robusta y firewall. En la primera puesta en marcha debe escucharse en localhost o en una interfaz de administración confiable.
+Los runtimes se instalarán en directorios separados del código del panel. La instalación deberá mostrar origen, versión y avisos/licencia relevantes. NEON Control no los redistribuye por defecto.
 
-Ejemplo de apertura de juego con UFW (ajustar a la configuración real):
+## 6. Red y firewall
 
-```bash
-sudo ufw allow 19132/udp
-# Solo si se utiliza el endpoint IPv6 correspondiente:
-sudo ufw allow 19133/udp
-```
+| Motor | Puerto predeterminado | Protocolo |
+|---|---:|---|
+| Bedrock Dedicated Server | 19132 | UDP |
+| Paper / Java | 25565 | TCP |
 
-No abrir puertos que no se utilicen. Si se cambia el puerto en server.properties, actualizar también firewall, NAT y documentación.
+Abrir solo los puertos utilizados. El panel web no debe exponerse sin TLS, autenticación robusta y firewall. Durante la puesta en marcha debe escuchar en localhost o interfaz administrativa confiable.
 
-## 6. Verificación posterior
+## 7. Verificación posterior
 
-La futura instalación deberá validar:
-- Estado de systemd.
-- Salud de la API.
-- Acceso a SQLite.
-- Permisos de directorios.
-- Disponibilidad del ejecutable BDS.
-- Puerto UDP y firewall.
-- Capacidad de crear, iniciar y detener una instancia de prueba.
+Validar systemd, API, SQLite, permisos, runtime, dependencias BDS o versión de Java, puertos/firewall y creación/inicio/detención de una instancia de prueba.
 
-## 7. Actualizaciones
+## 8. Actualizaciones
 
-Actualizar desde versiones publicadas, no desde la rama de desarrollo. Antes de actualizar:
-1. Detener ordenadamente las instancias.
-2. Crear backup de configuración, datos y mundos.
-3. Verificar espacio libre.
-4. Aplicar la actualización.
-5. Ejecutar migraciones.
-6. Validar salud.
-7. Restaurar la versión anterior si falla la validación.
+Actualizar panel y motores por separado. Antes de actualizar un motor: detener ordenadamente, respaldar configuración/datos/mundos, verificar espacio y compatibilidad, actualizar, validar arranque y restaurar si falla. Una actualización del panel no debe reemplazar runtimes silenciosamente.
 
-## 8. Desinstalación
+## 9. Desinstalación
 
-El desinstalador deberá distinguir entre archivos de aplicación, configuración, base de datos, instancias y backups. Nunca debe borrar mundos, instancias o backups sin una confirmación explícita y una opción de conservarlos.
+Distinguir aplicación, configuración, base de datos, runtimes, instancias y backups. Nunca borrar mundos o backups sin confirmación explícita y opción de conservarlos.
