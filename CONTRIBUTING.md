@@ -4,9 +4,10 @@ Gracias por tu interés en NEON Control.
 
 ## Antes de contribuir
 
-- Lee el README y la licencia NCL-1.0.
-- Las contribuciones deben cumplir las restricciones de publicación de modificaciones y uso no comercial.
-- No incluyas binarios oficiales de Minecraft/BDS ni material de terceros sin permiso.
+- Lee el README, LICENSE y la política de licencias.
+- Las contribuciones al código propio deben cumplir NCL-1.0 y sus restricciones de publicación de modificaciones y uso no comercial.
+- No incluyas binarios de Minecraft, BDS, Paper, JVM ni material de terceros sin verificar previamente sus términos y permisos.
+- No copies código de Paper u otro componente GPL al código del panel sin una revisión de compatibilidad de licencias.
 - No incluyas credenciales, datos privados o backups reales.
 
 ## Flujo recomendado
@@ -20,9 +21,10 @@ Gracias por tu interés en NEON Control.
 
 ## Calidad
 
-- Mantener responsabilidades separadas entre frontend, API y gestión de procesos.
+- Mantener responsabilidades separadas entre frontend, API, Instance Manager y adaptadores de motores.
 - No añadir endpoints de shell arbitraria.
 - Validar entradas y permisos en backend.
+- No asumir paridad funcional entre Java y Bedrock; declarar capacidades por adaptador.
 - Documentar cambios de configuración y migraciones.
 - Añadir pruebas para errores y casos límite.
 - Mantener compatibilidad con los entornos Linux objetivo.
@@ -36,4 +38,4 @@ Gracias por tu interés en NEON Control.
 
 ## Pull Requests
 
-Un PR debe indicar qué cambia, por qué cambia, cómo se probó, compatibilidad Ubuntu/Proxmox, cambios de seguridad o permisos y cambios de base de datos/configuración.
+Un PR debe indicar qué cambia, por qué cambia, cómo se probó, compatibilidad Ubuntu/Proxmox, cambios de seguridad o permisos, cambios de base de datos/configuración y cualquier impacto en licencias o dependencias.
