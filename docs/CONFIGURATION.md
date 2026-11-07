@@ -4,74 +4,59 @@ Este documento define valores y decisiones iniciales. El formato definitivo se i
 
 ## 1. Valores iniciales
 
-| Parámetro | Valor inicial |
+| Parámetro | Valor |
 |---|---|
 | Nombre | NEON Control |
-| Edición | Minecraft Bedrock |
+| Ediciones | Minecraft Java + Bedrock |
 | Arquitectura | Single-node |
-| Instancias | Varias instancias locales previstas |
-| API | FastAPI |
+| Instancias | Varias instancias locales |
+| Backend | FastAPI |
 | Frontend | React + TypeScript |
 | DB | SQLite |
-| Puerto Bedrock IPv4 | UDP 19132 |
-| Puerto Bedrock IPv6 | UDP 19133, si se habilita |
-| Bind de API durante setup | 127.0.0.1 |
+| Motor Bedrock | Bedrock Dedicated Server |
+| Motor Java | PaperMC, integración externa |
+| Puerto Bedrock | UDP 19132 |
+| Puerto Java | TCP 25565 |
+| Bind API durante setup | 127.0.0.1 |
 | Servicio | systemd |
 
-## 2. Configuración de instancia BDS
+## 2. Modelo de instancia
 
-Cada instancia debe mantener su propio:
-- Identificador y nombre.
-- Directorio de instalación.
-- Ejecutable BDS.
-- Archivo server.properties.
-- Puerto y parámetros de red.
-- Directorio de mundos.
-- Logs.
-- Estado y metadatos.
-- Política de backups.
+Registrar ID, nombre, edición (java/bedrock), motor (paper/bedrock_dedicated_server), versión, rutas de runtime y datos, ejecutable/JAR, dependencias (Java si corresponde), puerto/protocolo, configuración, logs, mundos, backups, estado y capacidades del adaptador.
 
-No compartir directorios de mundo entre procesos BDS simultáneos.
+No compartir directorios de mundo entre procesos simultáneos.
 
-## 3. server.properties
+## 3. Configuración Bedrock
 
-El panel deberá leer y editar propiedades compatibles con la versión instalada de BDS. Debe preservar propiedades desconocidas para evitar eliminar opciones nuevas al guardar.
+Cada BDS mantiene su server.properties, allowlist, permisos y mundos propios. Opciones de interés: server-name, gamemode, difficulty, allow-cheats, max-players, online-mode, allow-list, server-port, server-portv6, view-distance, tick-distance, level-name, level-seed y default-player-permission-level.
 
-Opciones de interés:
-- server-name
-- gamemode
-- difficulty
-- allow-cheats
-- max-players
-- online-mode
-- allow-list
-- server-port
-- server-portv6
-- view-distance
-- tick-distance
-- level-name
-- level-seed
-- default-player-permission-level
+Los valores dependen de la versión. Preservar propiedades desconocidas y validar según el runtime instalado.
 
-Los nombres y valores válidos dependen de la versión oficial de BDS. El panel debe validar con la documentación/esquema de la versión, no asumir que todas las versiones aceptan el mismo conjunto.
+## 4. Configuración Java / Paper
 
-## 4. Puertos y exposición
+Cada instancia Paper mantiene sus propios server.properties, eula.txt, config, plugins y datos, logs y mundos/dimensiones.
 
-El puerto UDP 19132 es el valor por defecto previsto para IPv4. El endpoint IPv6 puede usar UDP 19133. Si el administrador cambia estos valores, NEON Control debe mostrar qué reglas de firewall/NAT debe actualizar.
+Opciones comunes de server.properties: server-port (TCP 25565 por defecto), server-ip, max-players, online-mode, motd, level-name, difficulty, gamemode, view-distance, simulation-distance y white-list.
 
-El panel web y la API son servicios de administración: no deben compartir el puerto de juego ni quedar expuestos públicamente por defecto.
+La disponibilidad y los valores dependen de la versión Minecraft/Paper. Preservar opciones desconocidas y evitar sobrescribir configuraciones de plugins.
 
-## 5. Variables de entorno
+Paper requiere una versión Java compatible con el build instalado. La detección/selección de JVM debe formar parte de la validación del runtime.
 
-Se prevé separar configuración no sensible y secretos. Ningún archivo con contraseñas reales, tokens o claves privadas debe subirse al repositorio. Los ejemplos publicados contendrán solo valores ficticios.
+Los plugins ejecutan código de terceros. Su instalación requiere controles de origen, permisos, backup y advertencias; no se considera requisito del primer soporte básico de Paper.
 
-## 6. Backups
+## 5. Puertos y exposición
 
-El backup debe incluir como mínimo:
-- server.properties.
-- allowlist y permissions.
-- mundos.
-- packs y configuraciones adicionales instaladas por el administrador.
-- metadatos de la instancia.
+| Motor | Puerto predeterminado | Protocolo |
+|---|---:|---|
+| Bedrock Dedicated Server | 19132 | UDP |
+| Paper / Java | 25565 | TCP |
 
-La base de datos del panel tendrá su propio mecanismo de backup. Se deben documentar retención, ubicación externa y prueba de restauración.
+Si se modifican, mostrar las reglas de firewall/NAT necesarias. El panel y la API no deben quedar expuestos públicamente por defecto.
+
+## 6. Secretos
+
+Separar configuración no sensible y secretos. No subir contraseñas, tokens ni claves privadas. Los ejemplos usan valores ficticios.
+
+## 7. Backups
+
+Incluir, según motor: configuración, propiedades, allowlist/whitelist, permisos/operadores, mundos/dimensiones, plugins/add-ons y metadatos. La base SQLite del panel tiene backup propio. Documentar retención, ubicación externa y pruebas de restauración. Para consistencia, detener o guardar correctamente el estado del servidor antes de copiar mundos.
