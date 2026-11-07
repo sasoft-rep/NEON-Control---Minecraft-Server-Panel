@@ -58,9 +58,18 @@ d. the redistribution does not imply endorsement by the original authors.
 
 You may not impose additional restrictions that prevent recipients from exercising the rights granted by this License.
 
-6. THIRD-PARTY MATERIAL
+6. THIRD-PARTY MATERIAL AND SEPARATE RUNTIMES
 
-This License applies only to material that the project has the right to license. Third-party libraries, assets, fonts, trademarks, and Minecraft/Mojang/Microsoft components remain subject to their own terms. You are responsible for complying with those terms. NEON Control does not grant rights to Minecraft, Bedrock Dedicated Server, or any Mojang/Microsoft intellectual property.
+This License applies only to material that the project has the right to license and that is expressly distributed under NCL-1.0. It does not relicense, replace, or override third-party software, libraries, assets, fonts, trademarks, or services.
+
+NEON Control manages external Minecraft server runtimes. In particular:
+a. PaperMC is an independent third-party server project. NEON Control integrates Paper as an external runtime and does not incorporate, modify, or redistribute Paper source code as part of this repository. Paper and its components remain subject to their own applicable licenses and notices, including GPL-3.0 for code covered by that license and other licenses where expressly identified by their authors.
+b. Minecraft Bedrock Dedicated Server (BDS), Minecraft, and related Mojang/Microsoft materials remain subject to their own terms. This License grants no rights to those materials.
+c. Java runtimes, Python packages, frontend packages, and all other dependencies remain subject to their respective licenses.
+d. If a future distribution bundles or redistributes any third-party runtime or dependency, the distributor must first identify and comply with all applicable license, attribution, source-code, notice, and redistribution requirements.
+e. No third-party component is relicensed under NCL-1.0 merely because it is downloaded, installed, launched, managed, or documented by NEON Control.
+
+The mere operation of an unmodified third-party runtime as a separate process does not, by itself, make that runtime part of the NEON Control codebase. Whether a particular combination constitutes a derivative or combined work is a legal question depending on the facts and applicable law; this License does not decide that question.
 
 7. TRADEMARKS
 
